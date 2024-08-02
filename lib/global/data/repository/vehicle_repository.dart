@@ -13,10 +13,14 @@ class VehicleRepository {
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(vehicle.toJson()..remove('id')),
+      body: jsonEncode(vehicle.toJson()..remove('_id')),  // Elimina '_id' antes de enviar
     );
 
-    if (response.statusCode != 201) {  // HTTP 201 Created
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      final createdVehicleId = responseBody['id'];
+      print('Vehicle created with id: $createdVehicleId');
+    } else {
       throw Exception('Failed to create vehicle');
     }
   }
@@ -36,20 +40,35 @@ class VehicleRepository {
       throw Exception('Failed to load vehicles');
     }
   }
-
   Future<void> updateVehicle(VehicleModel vehicle) async {
+    final uri = Uri.parse('$apiUrl/vehicles/${vehicle.id}');
+    final body = jsonEncode({
+      'marca': vehicle.marca,
+      'modelo': vehicle.modelo,
+      'autonomia': vehicle.autonomia,
+      'capacidadCarga': vehicle.capacidadCarga,
+    });
+
+    print('PUT Request URL: $uri');
+    print('PUT Request Body: $body');
+
     final response = await http.put(
-      Uri.parse('$apiUrl/vehicles/$vehicle.id'),
+      uri,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(vehicle.toJson()),
+      body: body,
     );
+
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Failed to update vehicle');
     }
   }
+
+
 
   // Eliminar un vehículo por ID
   Future<void> deleteVehicle(String id) async {

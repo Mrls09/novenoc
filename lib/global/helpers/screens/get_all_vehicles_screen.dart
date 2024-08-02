@@ -5,6 +5,31 @@ import '../cubit/vehicle_cubit.dart';
 import '../cubit/vehicle_state.dart';
 import '../../data/models/vehicle_model.dart';
 
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<VehicleRepository>(
+          create: (context) => VehicleRepository(apiUrl: 'https://5ksg4zuhj6.execute-api.us-east-1.amazonaws.com/Prod'),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<VehicleCubit>(
+            create: (context) => VehicleCubit(
+              vehicleRepository: RepositoryProvider.of<VehicleRepository>(context),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: VehicleListView(),
+        ),
+      ),
+    );
+  }
+}
+
 class VehicleListView extends StatelessWidget {
   const VehicleListView({super.key});
 
@@ -181,6 +206,7 @@ class VehicleListScreen extends StatelessWidget {
                     capacidadCarga: int.parse(_capacidadCargaController.text),
                   );
 
+                  print(vehicle == null ? 'Adding Vehicle' : 'Updating Vehicle');
                   if (vehicle == null) {
                     vehicleCubit.createVehicle(newVehicle);
                   } else {
